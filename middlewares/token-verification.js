@@ -10,7 +10,9 @@ const verifyToken = async (req, res, next) => {
   token = token.split(" ")[1];
   const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
   if (!decodedToken) throw new customError(403, "Token couldn't verified!");
-  const user = await User.findOne({ _id: response._id }).select("-password");
+  const user = await User.findOne({ _id: decodedToken._id }).select(
+    "-password"
+  );
   if (user) {
     req.userData = decodedToken;
     next();

@@ -24,7 +24,7 @@ const userController = {
   },
   userLogin: async (req, res) => {
     const { email, password } = req.body;
-    let userExist = await User.findOne({ email: email }).select("-password");
+    let userExist = await User.findOne({ email: email });
     if (!userExist) {
       throw new customError(404, "User doesn't exist");
     }
@@ -32,6 +32,8 @@ const userController = {
     if (!isValidPass) {
       throw new customError(401, "Invalid Credentials");
     }
+    userExist = userExist.toObject();
+    delete userExist.password;
     const token = await jwt.sign(userExist, process.env.SECRET_KEY, {
       expiresIn: "2d",
     });

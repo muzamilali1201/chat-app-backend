@@ -75,13 +75,26 @@ const roomController = {
     const Rooms = await Room.find({ members: userData._id }).select(
       "-members -messages"
     );
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Successfully fetched rooms user joined",
-        data: Rooms,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Successfully fetched rooms user joined",
+      data: Rooms,
+    });
+  },
+  deleteRoom: async (req, res) => {
+    const { roomid } = req.params;
+    const { userData } = req;
+
+    const room = await Room.findOne({ _id: roomid });
+    if (room.createdBy !== userData.email) {
+      throw new customError(401, "User is not authorized to delete this room");
+    }
+    const deletedRoom = await Room.findByIdAndDelete(roomid);
+    res.status(200).json({
+      success: true,
+      message: "Room has deleted successfully",
+      data: deletedRoom,
+    });
   },
 };
 
