@@ -46,6 +46,14 @@ This document provides an overview of the API routes available in the applicatio
 - **Middleware:** `verifyToken`
 - **Controller:** `roomController.leaveRoom`
 
+### Delete Room
+
+- **URL:** `/:roomid`
+- **Method:** DELETE
+- **Description:** Allows a user(who had created the room) to delete a room.
+- **Middleware:** `verifyToken`
+- **Controller:** `roomController.deleteRoom`
+
 ### Get All Joined Rooms
 
 - **URL:** `/`
