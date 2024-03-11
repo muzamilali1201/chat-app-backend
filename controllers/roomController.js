@@ -31,7 +31,7 @@ const roomController = {
     if (!roomExist) {
       throw new customError(404, "Room does not exist!");
     }
-    if (roomExist.members.some((elem) => elem == userData._id))
+    if (roomExist.members.some((member) => member == userData._id))
       throw new customError(409, "You have already joined!");
     const updateRoom = await Room.findOneAndUpdate(
       { roomId: roomid },
@@ -89,11 +89,11 @@ const roomController = {
     if (room.createdBy !== userData.email) {
       throw new customError(401, "User is not authorized to delete this room");
     }
-    const deletedRoom = await Room.findByIdAndDelete(roomid);
-    res.status(200).json({
+    await Room.findByIdAndDelete(roomid);
+    res.status(204).json({
       success: true,
       message: "Room has deleted successfully",
-      data: deletedRoom,
+      data: {},
     });
   },
 };

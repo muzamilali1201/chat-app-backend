@@ -26,19 +26,21 @@ const listener = () => {
 
     socket.on("chat", async (incomingMessage) => {
       let parsedMessage = JSON.parse(incomingMessage);
-      let recipientUser = await User.findOne({ email: messageToSend.email });
+      let recipientUser = await User.findOne({ email: parsedMessage.email });
+      if (!recipientUser) {
+        throw new customError(404, "User not exist");
+      }
       const senderEmail = socket.userData.email;
       const message = new Chat({
-        to: messageToSend.email,
+        to: parsedMessage.email,
         from: senderEmail,
         message: parsedMessage.message,
         file: parsedMessage?.file || null,
       });
-      if (!recipientUser.online) {
-        return await message.save();
+      if (recipientUser.online) {
+        socket.to(recipientUser.socketid).emit("chat", { message });
       }
 
-      socket.to(recipientUser.socketid).emit("chat", { message });
       await message.save();
     });
 
@@ -71,7 +73,7 @@ const listener = () => {
     socket.on("group-chat", async (message) => {
       try {
         const messageDetails = JSON.parse(message);
-        if (messageDetails.message == "")
+        if (messageDetails.message.trim() == "")
           throw new Error("Please write something");
         const roomExist = await Room.findOne({ roomId: messageDetails.roomId });
         if (!roomExist) throw new Error("Room does not exist");
@@ -81,6 +83,10 @@ const listener = () => {
           )
         )
           throw new Error("You haven't joined this room yet!");
+
+        socket.broadcast.to(messageDetails.roomId).emit("group-chat", {
+          message: messageDetails.message,
+        });
         const userMessage = await Room.findOneAndUpdate(
           { roomId: messageDetails.roomId },
           {
@@ -93,10 +99,6 @@ const listener = () => {
           },
           { new: true }
         );
-
-        socket.broadcast.to(messageDetails.roomId).emit("notification", {
-          message: userMessage.messages,
-        });
       } catch (error) {
         socket.emit("error", error.message);
       }
